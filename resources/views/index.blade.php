@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>AVENTONES - Find Your Ride</title>
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -13,7 +14,7 @@
 
 <body class="index-page">
 
-    {{-- HEADER --}}
+    {{-- HEADER COMPLETO --}}
     <header class="index-topbar">
         <div class="index-brand">
             <img class="index-logo" src="{{ asset('img/logo.png') }}" alt="Aventones logo">
@@ -23,28 +24,31 @@
         <nav class="main-nav">
             <ul class="nav-links">
                 <li><a href="{{ route('home') }}" class="active">Home</a></li>
-                <li><a href="#">Bookings</a></li>
+                <li><a href="{{ route('bookings') }}">Bookings</a></li>
             </ul>
         </nav>
 
         <div class="right-box">
             @if(session('user_id'))
-                @if(session('user_rol') === 'CHOFER')
-                    <a href="#" class="btn neon">New Ride</a>
-                @endif
 
+                
+
+                {{-- PROFILE MENU --}}
                 <div class="profile-menu">
                     <img src="{{ asset(session('user_foto', 'img/logo.png')) }}"
-                         alt="User Icon" class="avatar" id="avatarBtn"
+                         alt="User Icon"
+                         class="avatar"
+                         id="avatarBtn"
                          onerror="this.src='{{ asset('img/logo.png') }}'">
 
                     <ul class="dropdown" id="profileDropdown">
                         <li><a href="{{ route('home') }}" class="dropdown-link">Home</a></li>
-                        <li><a href="#" class="dropdown-link">Bookings</a></li>
-                        <li><a href="#" class="dropdown-link">Configuration</a></li>
-                        <li><a href="#" class="logout-btn">Logout</a></li>
+                        <li><a href="{{ route('bookings') }}" class="dropdown-link">Bookings</a></li>
+                        <li><a href="{{ route('configurations') }}" class="dropdown-link">Configuration</a></li>
+                        <li><a href="{{ route('logout') }}" class="logout-btn">Logout</a></li>
                     </ul>
                 </div>
+
             @else
                 <div class="auth-buttons">
                     <a href="{{ route('login') }}" class="btn outline">Login</a>
@@ -97,17 +101,15 @@
             {{-- Filters Section --}}
             <div class="filters-section">
                 <h3 class="section-title">
-                    {{ (empty(request('origen')) && empty(request('destino')))
-                        ? 'Available Rides'
-                        : 'Search Results' }}
+                    {{ (empty(request('origen')) && empty(request('destino'))) ? 'Available Rides' : 'Search Results' }}
                     <span class="rides-count">({{ count($rides) }})</span>
                 </h3>
 
                 <div class="sort-container">
                     <span class="sort-label">Sort by:</span>
-                    <select id="ordenSelect" class="sort-select" onchange="sortRides(this.value)">
-                        <option value="dia_asc">Day (Mon → Sun)</option>
-                        <option value="dia_desc">Day (Sun → Mon)</option>
+                    <select id="ordenSelect" class="sort-select">
+                        <option value="dia_asc">Day (Monday to Sunday)</option>
+                        <option value="dia_desc">Day (Sunday to Monday)</option>
                         <option value="origen_asc">Origin (A-Z)</option>
                         <option value="origen_desc">Origin (Z-A)</option>
                         <option value="destino_asc">Destination (A-Z)</option>
@@ -121,7 +123,6 @@
             {{-- RIDES GRID --}}
             <div class="rides-grid">
                 @forelse($rides as $ride)
-
                     <article class="ride-card" data-id="{{ $ride->id }}">
                         <span class="ride-accent"></span>
 
@@ -132,7 +133,7 @@
                             </div>
 
                             @if(session('user_rol') === 'PASAJERO')
-                                <button onclick="reservarRide({{ $ride->id }})"
+                                <button onclick="reservarRide({{ $ride->id }})" 
                                         class="btn success btn-reserve">
                                     <i class="fas fa-calendar-plus"></i> Book
                                 </button>
@@ -141,8 +142,7 @@
 
                         <div class="ride-route">
                             <h5 class="ride-route-title">
-                                {{ $ride->lugar_salida }} →
-                                {{ $ride->lugar_llegada }}
+                                {{ $ride->lugar_salida }} → {{ $ride->lugar_llegada }}
                             </h5>
                         </div>
 
@@ -151,7 +151,6 @@
                                 <i class="fas fa-car detail-icon"></i>
                                 {{ $ride->marca }} {{ $ride->modelo }} · {{ $ride->anio }}
                             </div>
-
                             <div class="seats-info">
                                 <i class="fas fa-users detail-icon"></i>
                                 {{ $ride->espacios_disponibles }} seats available
@@ -167,19 +166,71 @@
                     </article>
 
                 @empty
-
                     <div class="no-rides">
                         <div class="no-rides-illu"></div>
                         <h4 class="no-rides-title">No rides found</h4>
                         <p class="no-rides-text">Try different search criteria</p>
                     </div>
-
                 @endforelse
             </div>
         </div>
     </main>
 
+    {{-- ========== RESERVATION MODAL (NECESARIO PARA FUNCIONAR) ========== --}}
+    <dialog id="reservaModal" class="ride-modal">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h3>Book Ride</h3>
+                <span class="close">&times;</span>
+            </div>
+
+            <div class="modal-body">
+                <div id="modalRideInfo"></div>
+
+                <div class="form-group">
+                    <label for="cantidadEspacios" class="form-label">Number of spaces:</label>
+                    <input type="number" id="cantidadEspacios" min="1" value="1" class="form-input">
+                    <small id="maxEspaciosInfo" class="form-help"></small>
+                </div>
+
+                <div class="price-summary">
+                    <p>Cost per space: <span id="costoPorEspacio">₡0.00</span></p>
+                    <p class="total-price">Total: <span id="costoTotal">₡0.00</span></p>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn outline" id="cancelarReserva">Cancel</button>
+                <button class="btn neon" id="confirmarReserva">Confirm Booking</button>
+            </div>
+
+        </div>
+    </dialog>
+
     {{-- JS --}}
     <script src="{{ asset('js/index.js') }}"></script>
+
+    {{-- SUBMENU SCRIPT --}}
+    <script>
+        const avatarBtn = document.getElementById('avatarBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+
+        if (avatarBtn && profileDropdown) {
+            avatarBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                profileDropdown.classList.toggle('show');
+            });
+
+            document.addEventListener('click', function() {
+                profileDropdown.classList.remove('show');
+            });
+
+            profileDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    </script>
+
 </body>
 </html>
