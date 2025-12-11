@@ -8,8 +8,9 @@
   {{-- CSS --}}
   <link rel="stylesheet" href="{{ asset('css/registration.css') }}">
 
-  {{-- JS (si hace falta después) --}}
-  {{-- <script src="{{ asset('js/registration.js') }}" defer></script> --}}
+  {{-- JS --}}
+  <script src="{{ asset('js/registration.js') }}" defer></script>
+
 </head>
 
 <body>
@@ -116,7 +117,7 @@
 
             <p class="login-link">
               Register as driver?
-              <a href="#">Click here</a>
+              <a href="{{ route('registerDriver.create') }}">Click here</a>
             </p>
           </div>
 
