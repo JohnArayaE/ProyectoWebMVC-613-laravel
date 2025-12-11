@@ -1,5 +1,5 @@
 <?php
-
+putenv('APP_DEBUG=true');
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
