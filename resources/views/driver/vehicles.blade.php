@@ -4,56 +4,61 @@
 @section('header-title', 'My Vehicles')
 @section('nav-home', 'active')
 
+@section('top-action')
+    <a href="{{ route('driver.vehicles.create') }}" class="btn neon">New Vehicle</a>
+@endsection
+
 @section('content')
-    <main class="veh-content">
+<main class="veh-content">
 
-        {{-- Si no hay vehículos --}}
-        @if ($vehiculos->isEmpty())
-            <article class="veh-empty" id="emptyState">
-                <div class="veh-illu" aria-hidden="true"></div>
-                <h3>No vehicles yet</h3>
-                <p>Add your first vehicle to start offering rides.</p>
-                <a href="#" class="btn neon ghost">Add vehicle</a>
-            </article>
-        @else
-            <section class="veh-grid" id="vehGrid">
+    {{-- Si no hay vehículos --}}
+    @if ($vehiculos->isEmpty())
+        <article class="veh-empty" id="emptyState">
+            <div class="veh-illu" aria-hidden="true"></div>
+            <h3>No vehicles yet</h3>
+            <p>Add your first vehicle to start offering rides.</p>
 
-                @foreach ($vehiculos as $vehiculo)
-                    <article class="veh-card" data-id="{{ $vehiculo->id }}">
-                        <span class="veh-accent"></span>
+            <a href="{{ route('driver.vehicles.create') }}" class="btn neon">New Vehicle</a>
+        </article>
 
-                        <div class="veh-photo">
-                            <img src="{{ $vehiculo->foto_vehiculo ? asset($vehiculo->foto_vehiculo) : asset('img/example.jpg') }}"
-                                 alt="Vehicle photo">
-                        </div>
+    @else
+        <section class="veh-grid" id="vehGrid">
 
-                        <header class="veh-head">
-                            <span class="veh-plate">{{ $vehiculo->placa }}</span>
-                            <span class="veh-seats">{{ $vehiculo->capacidad }} seats</span>
-                        </header>
+            @foreach ($vehiculos as $vehiculo)
+                <article class="veh-card" data-id="{{ $vehiculo->id }}">
+                    <span class="veh-accent"></span>
 
-                        <ul class="veh-meta">
-                            <li><strong>Brand/Model:</strong> {{ $vehiculo->marca }} {{ $vehiculo->modelo }}</li>
-                            <li><strong>Year:</strong> {{ $vehiculo->anio }}</li>
-                            <li><strong>Color:</strong> {{ $vehiculo->color }}</li>
-                        </ul>
+                    <div class="veh-photo">
+                        <img src="{{ asset('storage/' . $vehiculo->foto_vehiculo) }}" 
+                            alt="Vehicle photo">
+                    </div>
 
-                        <footer class="veh-actions">
-                            <a href="#" class="btn outline">Edit</a>
+                    <header class="veh-head">
+                        <span class="veh-plate">{{ $vehiculo->placa }}</span>
+                        <span class="veh-seats">{{ $vehiculo->capacidad }} seats</span>
+                    </header>
 
-                            <form action="#" method="POST"
-                                  onsubmit="return confirm('Are you sure you want to delete this vehicle?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn danger">Delete</button>
-                            </form>
-                        </footer>
+                    <ul class="veh-meta">
+                        <li><strong>Brand/Model:</strong> {{ $vehiculo->marca }} {{ $vehiculo->modelo }}</li>
+                        <li><strong>Year:</strong> {{ $vehiculo->anio }}</li>
+                        <li><strong>Color:</strong> {{ $vehiculo->color }}</li>
+                    </ul>
 
-                    </article>
-                @endforeach
+                    <footer class="veh-actions">
+                        <button class="btn outline" data-edit="{{ $vehiculo->id }}">
+                            Edit
+                        </button>
 
-            </section>
-        @endif
+                        <button class="btn danger" data-delete="{{ $vehiculo->id }}">
+                            Delete
+                        </button>
+                    </footer>
 
-    </main>
+                </article>
+            @endforeach
+
+        </section>
+    @endif
+
+</main>
 @endsection

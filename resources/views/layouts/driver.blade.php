@@ -9,11 +9,13 @@
 
     <link rel="stylesheet" href="{{ asset('css/vehicles.css') }}">
     <script src="{{ asset('js/vehicles.js') }}" defer></script>
+
+    @yield('css')
 </head>
 
 <body class="veh-page">
 
-    <!-- ========= HEADER COMPLETO ARREGLADO ========= -->
+    <!-- ========= HEADER ========= -->
     <header class="veh-topbar">
         <div class="veh-brand">
             <img class="veh-logo" src="{{ asset('img/logo.png') }}" alt="Aventones logo">
@@ -23,37 +25,30 @@
         <nav class="main-nav">
             <ul class="nav-links">
                 <li><a href="{{ route('driver.vehicles') }}" class="@yield('nav-home')">Home</a></li>
-                <li><a href="#">Rides</a></li>
-                <li><a href="#">Bookings</a></li>
+                <li><a href="{{ route('driver.rides') }}" class="@yield('nav-rides')">Rides</a></li>
+                <li><a href="{{ route('bookings') }}" class="@yield('nav-bookings')">Bookings</a></li>
             </ul>
         </nav>
 
         <div class="right-box">
 
-            <a href="#" class="btn neon">New Vehicle</a>
+            {{-- BOTÓN DINÁMICO (Vehicle o Ride) --}}
+            @yield('top-action')
 
+            {{-- PROFILE MENU --}}
             <div class="profile-menu">
 
-                @if(Auth::check())
-                    <img src="{{ Auth::user()->foto_ruta ? asset(Auth::user()->foto_ruta) : asset('img/logo.png') }}"
-                        alt="User Icon"
-                        class="avatar"
-                        id="avatarBtn"
-                        onerror="this.src='{{ asset('img/logo.png') }}'">
+                <img src="{{ asset(session('user_foto', 'img/logo.png')) }}"
+                    alt="User Icon"
+                    class="avatar"
+                    id="avatarBtn"
+                    onerror="this.src='{{ asset('img/logo.png') }}'">
 
-                    <ul class="dropdown" id="profileDropdown">
-                        <li><a href="{{ route('driver.vehicles') }}">Home</a></li>
-                        <li><a href="#">Rides</a></li>
-                        <li><a href="#">Bookings</a></li>
-                        <li><a href="#">Configuration</a></li>
-                        <li><a href="{{ route('logout') }}" class="logout-btn">Logout</a></li>
-                    </ul>
-
-                @else
-                    <img src="{{ asset('img/logo.png') }}" 
-                        alt="Guest Icon" 
-                        class="avatar">
-                @endif
+                <ul class="dropdown" id="profileDropdown">
+                    <li><a href="{{ route('driver.vehicles') }}" class="dropdown-link">My Vehicles</a></li>
+                    <li><a href="{{ route('configurations') }}" class="dropdown-link">Configuration</a></li>
+                    <li><a href="{{ route('logout') }}" class="logout-btn">Logout</a></li>
+                </ul>
 
             </div>
         </div>
@@ -66,8 +61,8 @@
     <footer class="veh-footer">
         <div class="footer-links">
             <a href="{{ route('driver.vehicles') }}">Home</a> |
-            <a href="#">Rides</a> |
-            <a href="#">Bookings</a>
+            <a href="{{ route('driver.rides') }}">Rides</a> |
+            <a href="{{ route('bookings') }}">Bookings</a>
         </div>
         <p>&copy; Aventones.com</p>
     </footer>
