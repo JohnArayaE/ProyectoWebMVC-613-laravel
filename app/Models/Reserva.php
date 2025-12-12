@@ -12,7 +12,8 @@ class Reserva extends Model
         'id_ride',
         'id_pasajero',
         'estado',
-        'cantidad_espacios'
+        'cantidad_espacios',
+        'fecha_creacion'
     ];
 
     public $timestamps = false;

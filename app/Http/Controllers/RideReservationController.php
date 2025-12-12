@@ -35,7 +35,7 @@ class RideReservationController extends Controller
                 ], 404);
             }
 
-            // Validar si YA existe reserva de este pasajero para este ride
+            // Verificar si ya existe una reserva para este ride
             $reservaExistente = Reserva::where('id_ride', $ride->id)
                 ->where('id_pasajero', session('user_id'))
                 ->first();
@@ -55,15 +55,16 @@ class RideReservationController extends Controller
                 ]);
             }
 
-            // Crear reserva
+            // Crear reserva (📌 ahora incluye fecha_creacion)
             $reserva = Reserva::create([
-                'id_ride' => $ride->id,
-                'id_pasajero' => session('user_id'),
-                'cantidad_espacios' => $request->cantidad_espacios,
-                'estado' => 'PENDIENTE'
+                'id_ride'            => $ride->id,
+                'id_pasajero'        => session('user_id'),
+                'cantidad_espacios'  => $request->cantidad_espacios,
+                'estado'             => 'PENDIENTE',
+                'fecha_creacion'     => now(), // ←🔥 Hora actual de tu PC / servidor
             ]);
 
-            // Actualizar los espacios disponibles
+            // Actualizar espacios disponibles
             $ride->espacios_disponibles -= $request->cantidad_espacios;
             $ride->save();
 
@@ -75,13 +76,13 @@ class RideReservationController extends Controller
 
         } catch (\Exception $e) {
 
-            // ⚠️ DEBUG COMPLETO – PARA VER EL ERROR REAL
+            // DEV MODE - Muestra error completo
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor',
-                'error' => $e->getMessage(),   // mensaje real del error
-                'line' => $e->getLine(),       // línea exacta donde explotó
-                'file' => $e->getFile(),       // archivo exacto
+                'error'   => $e->getMessage(),
+                'line'    => $e->getLine(),
+                'file'    => $e->getFile(),
             ], 500);
         }
     }
