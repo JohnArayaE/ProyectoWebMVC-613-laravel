@@ -8,12 +8,19 @@
 
     {{-- Mensajes de éxito / error --}}
     @if (session('mensaje'))
-        <div class="alert alert-success">{{ session('mensaje') }}</div>
+        <div class="alert-success">{{ session('mensaje') }}</div>
     @endif
 
     @if (session('error'))
-        <div class="alert alert-error">{{ session('error') }}</div>
+        <div class="alert-error">{{ session('error') }}</div>
     @endif
+
+    {{-- === BOTÓN PARA REPORTE DE BÚSQUEDAS === --}}
+    <div class="report-button-container">
+        <a href="{{ route('admin.reportes.busquedas') }}" class="btn btn-primary">
+            <i class="fas fa-chart-bar"></i> Ver Reporte de Búsquedas
+        </a>
+    </div>
 
     {{-- === Estadísticas === --}}
     <div class="stats-grid">

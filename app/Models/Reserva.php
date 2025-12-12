@@ -8,12 +8,25 @@ class Reserva extends Model
 {
     protected $table = 'reservas';
 
-    public $timestamps = false;  // ← IMPORTANTE
-
     protected $fillable = [
         'id_ride',
         'id_pasajero',
+        'estado',
         'cantidad_espacios',
-        'estado'
+        'fecha_creacion'
     ];
+
+    public $timestamps = false;
+
+   
+    public function ride()
+    {
+        return $this->belongsTo(Ride::class, 'id_ride');
+    }
+
+   
+    public function pasajero()
+    {
+        return $this->belongsTo(Usuario::class, 'id_pasajero');
+    }
 }

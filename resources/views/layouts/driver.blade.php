@@ -26,7 +26,7 @@
             <ul class="nav-links">
                 <li><a href="{{ route('driver.vehicles') }}" class="@yield('nav-home')">Home</a></li>
                 <li><a href="{{ route('driver.rides') }}" class="@yield('nav-rides')">Rides</a></li>
-                <li><a href="{{ route('bookings') }}" class="@yield('nav-bookings')">Bookings</a></li>
+                <li><a href="{{ route('bookings') }}" class="@yield('nav-bookings')">Bookings</a>
             </ul>
         </nav>
 
@@ -58,14 +58,13 @@
     @yield('content')
 
     <!-- FOOTER -->
-    <footer class="veh-footer">
-        <div class="footer-links">
-            <a href="{{ route('driver.vehicles') }}">Home</a> |
-            <a href="{{ route('driver.rides') }}">Rides</a> |
-            <a href="{{ route('bookings') }}">Bookings</a>
-        </div>
-        <p>&copy; Aventones.com</p>
-    </footer>
-
+   <footer class="veh-footer">
+    <div class="footer-links">
+        <a href="{{ route('driver.vehicles') }}">Home</a> |
+        <a href="{{ route('driver.rides') }}">Rides</a> |
+        <a href="{{ route('bookings') }}">Bookings</a>
+    </div>
+    <p>&copy; Aventones.com</p>
+</footer>
 </body>
 </html>

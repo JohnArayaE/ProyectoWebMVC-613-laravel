@@ -1,5 +1,5 @@
 // Sort change
-document.getElementById('ordenSelect').addEventListener('change', function() {
+document.getElementById('ordenSelect')?.addEventListener('change', function () {
     const url = new URL(window.location);
     url.searchParams.set('orden', this.value);
     window.location.href = url.toString();
@@ -7,13 +7,14 @@ document.getElementById('ordenSelect').addEventListener('change', function() {
 
 let rideActual = null;
 
-// Book ride function
+// =====================
+// OBTENER INFO DEL RIDE
+// =====================
 function reservarRide(rideId) {
-    console.log('Booking ride ID:', rideId);
 
-    fetch('/ride/info/' + rideId)
-        .then(response => {
-            if (!response.ok) throw new Error('Server error: ' + response.status);
+    fetch(`/ride/info/${rideId}`)
+        .then(async response => {
+            if (!response.ok) throw new Error("Error fetching ride info.");
             return response.json();
         })
         .then(data => {
@@ -29,15 +30,12 @@ function reservarRide(rideId) {
         });
 }
 
-// Show reservation modal
+// ==========================
+// MOSTRAR MODAL DE RESERVA
+// ==========================
 function mostrarModalReserva() {
     const modal = document.getElementById('reservaModal');
     const rideInfo = document.getElementById('modalRideInfo');
-
-    if (!rideActual) {
-        showNotification('Error: Could not load ride information', 'error');
-        return;
-    }
 
     const maxEspacios = Math.min(rideActual.espacios_disponibles, rideActual.capacidad - 1);
 
@@ -63,7 +61,9 @@ function mostrarModalReserva() {
     modal.showModal();
 }
 
-// Update total price
+// =======================
+// CALCULAR PRECIO TOTAL
+// =======================
 function actualizarPrecioTotal() {
     if (!rideActual) return;
 
@@ -73,7 +73,9 @@ function actualizarPrecioTotal() {
     document.getElementById('costoTotal').textContent = `₡${total.toFixed(2)}`;
 }
 
-// Notification system
+// =================
+// NOTIFICACIONES
+// =================
 function showNotification(message, type) {
     const div = document.createElement('div');
     div.className = `notification ${type}`;
@@ -86,20 +88,22 @@ function showNotification(message, type) {
     setTimeout(() => div.remove(), 4000);
 }
 
-// Modal configuration
-document.addEventListener('DOMContentLoaded', function() {
+// ========================
+// CONFIG DEL MODAL + ENVÍO
+// ========================
+document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById('reservaModal');
     const closeBtn = document.querySelector('.close');
     const cancelBtn = document.getElementById('cancelarReserva');
     const confirmBtn = document.getElementById('confirmarReserva');
     const cantidadInput = document.getElementById('cantidadEspacios');
 
-    closeBtn.onclick = cancelBtn.onclick = function() {
+    closeBtn.onclick = cancelBtn.onclick = function () {
         modal.close();
         rideActual = null;
     };
 
-    modal.addEventListener('click', function(e) {
+    modal.addEventListener('click', e => {
         if (e.target === modal) {
             modal.close();
             rideActual = null;
@@ -108,51 +112,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
     cantidadInput.addEventListener('input', actualizarPrecioTotal);
 
-    cantidadInput.addEventListener('change', function() {
+    cantidadInput.addEventListener('change', function () {
         let val = parseInt(this.value) || 1;
         const max = parseInt(this.max);
-
         if (val < 1) val = 1;
         if (val > max) val = max;
-
         this.value = val;
         actualizarPrecioTotal();
     });
 
-    // Confirm booking
-    confirmBtn.onclick = function() {
-        const cantidad = parseInt(cantidadInput.value) || 1;
+    // ===========================
+    // CONFIRMAR RESERVA
+    // ===========================
+    confirmBtn.onclick = function () {
 
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        const cantidad = parseInt(cantidadInput.value) || 1; // <-- LO QUE FALTABA!!
 
         fetch('/ride/reserve', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/x-www-form-urlencoded'
             },
-            body: JSON.stringify({
+            body: new URLSearchParams({
                 ride_id: rideActual.id,
                 cantidad_espacios: cantidad
             })
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showNotification(data.message, 'success');
-                modal.close();
-                setTimeout(() => location.reload(), 1500);
-            } else {
-                showNotification(data.message, 'error');
-            }
-        })
-        .catch(err => {
-            showNotification('Error making reservation: ' + err.message, 'error');
-        })
-        .finally(() => {
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML = 'Confirm Booking';
-        });
+            .then(async res => {
+                const text = await res.text();
+
+                try {
+                    const data = JSON.parse(text);
+
+                    if (data.success) {
+                        showNotification(data.message, 'success');
+                        modal.close();
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        console.error("SERVER ERROR:", data);
+                        showNotification(data.message + " | " + (data.error ?? ""), 'error');
+                    }
+
+                } catch (e) {
+                    console.error("RAW RESPONSE:", text);
+                    showNotification("Respuesta no válida del servidor.", 'error');
+                }
+            })
+            .catch(err => {
+                showNotification('Error making reservation: ' + err.message, 'error');
+            });
     };
 });

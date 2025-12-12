@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Ride;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -63,6 +64,22 @@ class HomeController extends Controller
         }
 
         $rides = $ridesQuery->get();
+
+        // -------------------------------------------------------------------
+        // REGISTRAR BÚSQUEDA (solo si el usuario está logueado Y buscó algo)
+        // -------------------------------------------------------------------
+        if (
+            session()->has('user_id') &&
+            ($request->filled('origen') || $request->filled('destino'))
+        ) {
+            DB::table('busquedas')->insert([
+                'usuario_id'        => session('user_id'),
+                'lugar_salida'      => $origen ?? '',
+                'lugar_llegada'     => $destino ?? '',
+                'cantidad_resultados' => count($rides),
+                'fecha_busqueda'    => now(),
+            ]);
+        }
 
         return view('index', compact('rides'));
     }
