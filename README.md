@@ -65,6 +65,24 @@ RECHAZADA
 CANCELADA
 Validación de disponibilidad
 
+🧩 Roles del Sistema
+👨‍💼 Administrador
+Gestiona usuarios y configuraciones
+Acceso a reportes del sistema
+Activación/desactivación de conductores
+
+🚗 Conductor
+Crear/editar/eliminar vehículos
+Crear/editar/cancelar rides
+Aceptar/rechazar reservas
+Recibir notificaciones automáticas por retrasos
+
+🧍 Pasajero
+Búsqueda de rides disponibles
+Realizar reservas
+Ver estados de sus viajes
+Gestionar su perfil
+
 
 🔔 Notificaciones Automáticas por Reservas Pendientes
 Laravel ejecuta un comando especial que revisa periódicamente si existen reservas con estado PENDIENTE por más de X minutos.
