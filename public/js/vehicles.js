@@ -26,9 +26,14 @@ function initProfileMenu() {
 
 // --- Botones de EDITAR ---
 function initEditButtons() {
-    document.querySelectorAll('[data-edit]').forEach(btn => {
+    const editButtons = document.querySelectorAll('[data-edit]');
+
+    editButtons.forEach(btn => {
         btn.addEventListener('click', function () {
+
             const id = this.getAttribute('data-edit');
+
+            // Redirección hacia la ruta edit correcta de Laravel
             window.location.href = `/driver/vehicles/${id}/edit`;
         });
     });
@@ -37,8 +42,11 @@ function initEditButtons() {
 
 // --- Botones de ELIMINAR ---
 function initDeleteButtons() {
-    document.querySelectorAll('[data-delete]').forEach(btn => {
+    const deleteButtons = document.querySelectorAll('[data-delete]');
+
+    deleteButtons.forEach(btn => {
         btn.addEventListener('click', function () {
+
             const id = this.getAttribute('data-delete');
             const plate = this.closest('.veh-card').querySelector('.veh-plate').textContent;
 
@@ -50,23 +58,26 @@ function initDeleteButtons() {
                     "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
                 }
             })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        showMessage("Vehicle deleted successfully!", "success");
-                        setTimeout(() => location.reload(), 1200);
-                    } else {
-                        showMessage("Error deleting vehicle.", "error");
-                    }
-                })
-                .catch(() => showMessage("Server error.", "error"));
+            .then(res => res.json())
+            .then(data => {
+
+                if (data.success) {
+                    showMessage("Vehicle deleted successfully!", "success");
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showMessage("Error deleting vehicle.", "error");
+                }
+
+            })
+            .catch(() => showMessage("Server error.", "error"));
         });
     });
 }
 
 
-// --- Mostrar mensaje temporal ---
+// --- Mostrar mensajes temporales ---
 function showMessage(text, type) {
+
     const div = document.createElement('div');
     div.className = `alert alert-${type}`;
     div.textContent = text;
@@ -81,6 +92,7 @@ function showMessage(text, type) {
         color: white;
         z-index: 2000;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        transition: opacity .3s;
     `;
 
     div.style.background = type === "success" ? "#4CAF50" : "#f44336";
