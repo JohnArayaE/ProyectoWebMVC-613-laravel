@@ -35,19 +35,52 @@ class RideReservationController extends Controller
                 ], 404);
             }
 
-            // Verificar si ya existe una reserva para este ride
+            // Buscar reserva existente
             $reservaExistente = Reserva::where('id_ride', $ride->id)
                 ->where('id_pasajero', session('user_id'))
                 ->first();
 
-            if ($reservaExistente) {
+            // Si existe y está activa (PENDIENTE o ACEPTADA) → NO permitir otra
+            if ($reservaExistente && in_array($reservaExistente->estado, ['PENDIENTE', 'ACEPTADA'])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Ya tienes una reserva en este viaje'
+                    'message' => 'Ya tienes una reserva activa en este viaje'
                 ]);
             }
 
-            // Validar espacios
+            // Si existe pero está CANCELADA o RECHAZADA → reutilizar registro
+            if ($reservaExistente) {
+
+                // Validar espacios disponibles antes de reactivar
+                if ($ride->espacios_disponibles < $request->cantidad_espacios) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No hay suficientes espacios disponibles'
+                    ]);
+                }
+
+                // Reactivar reserva
+                $reservaExistente->update([
+                    'estado'            => 'PENDIENTE',
+                    'cantidad_espacios' => $request->cantidad_espacios,
+                    'fecha_creacion'    => now(), // fecha de nueva solicitud
+                ]);
+
+                // Restar espacios del ride
+                $ride->espacios_disponibles -= $request->cantidad_espacios;
+                $ride->save();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Reserva creada nuevamente',
+                    'reserva' => $reservaExistente
+                ]);
+            }
+
+            // ------------------------------
+            // Si NO existe ninguna reserva → crear nueva
+            // ------------------------------
+
             if ($ride->espacios_disponibles < $request->cantidad_espacios) {
                 return response()->json([
                     'success' => false,
@@ -55,16 +88,15 @@ class RideReservationController extends Controller
                 ]);
             }
 
-            // Crear reserva (📌 ahora incluye fecha_creacion)
             $reserva = Reserva::create([
                 'id_ride'            => $ride->id,
                 'id_pasajero'        => session('user_id'),
                 'cantidad_espacios'  => $request->cantidad_espacios,
                 'estado'             => 'PENDIENTE',
-                'fecha_creacion'     => now(), // ←🔥 Hora actual de tu PC / servidor
+                'fecha_creacion'     => now(),
             ]);
 
-            // Actualizar espacios disponibles
+            // Reducir espacios disponibles
             $ride->espacios_disponibles -= $request->cantidad_espacios;
             $ride->save();
 
@@ -76,7 +108,7 @@ class RideReservationController extends Controller
 
         } catch (\Exception $e) {
 
-            // DEV MODE - Muestra error completo
+            // Modo debug
             return response()->json([
                 'success' => false,
                 'message' => 'Error interno del servidor',
